@@ -1,7 +1,7 @@
 # Teste Vocacional FB
 
 ## Informações do Projeto
-Decida seu próximo passo acadêmico com a ajuda do Tesre Vocacional.
+Decida seu próximo passo acadêmico com a ajuda do Teste Vocacional.
 
 ## Como edito o código
 
