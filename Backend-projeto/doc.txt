@@ -1,0 +1,54 @@
+explicação do routes, controllers, services, models (não tá na pasta ainda),
+data (também não), app.js e server.js
+
+front end envia respostas - routes passa pro controller - controller chama service 
+service calcula os pontos - controller devolve o json pro front - front mostra pro usuario
+
+1. routes/
+
+   o que é?
+   as rotas são os caminhos:
+   /api/quiz/questions pega perguntas
+   /api/quiz/answers pega respostas
+
+   meio que um "porteiro", a rota recebe quem chega e manda pro setor correto (controller)
+
+2. controllers/
+
+   o que é?
+   o controller recebe a requisição e coordena,
+   se for pergunta, ele getQuestions
+   se for resposta, ele calculateResults
+   ele chama o quiz.service.js, pega o resultado e devolve pro front
+
+3. services/
+
+   o que é?
+   é a lógica, ele calcula os pontos, soma as respostas e "decide" qual área
+   é recomendada
+
+4. models/
+
+   o que é?
+   os modelos de dados, se tiver um banco (tipo mongodb ou postgresql) aqui que ia ficar
+   o esquema de usuário, respostas e tal, no caso tá vazio pq eu usei so json, mas a pasta
+   ta lá pq se precisar já tem
+
+5. data/
+
+   o que é?
+   onde fica os arquivo fixo, tipo as perguntas, ajuda a não botar no meio do código
+   não é necessário, é mais pra ficar bonitinho mesmo
+
+6. app.js
+
+   o que é?
+   o núcleo do servidor, aqui tá montado o express, ativa o json e chama as rotas
+   (não sobe sozinho)
+
+7. server.js
+
+   o que é?
+   o ponto de partida, ele importa o app.js e diz "bora rodar na porta 3000"
+
+
