@@ -1,6 +1,7 @@
 {
   "name": "backend-projeto",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,5 +12,6 @@
   "license": "ISC",
   "dependencies": {
     "express": "^5.1.0"
-  }
+  },
+  "devDependencies": {}
 }

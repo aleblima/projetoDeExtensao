@@ -1,11 +1,17 @@
-import express from "express"; // importa o express, pra simplificar a criação de svs
-import quizRoutes from "./routes.ts/quiz.routes.js"; // importa as rota
+    import express from 'express';
+import { user } from './models/User.js';
+    const app = express();
 
-const app = express(); // cria o sv express
+    const PORT = 3000;
 
-app.use(express.json()); // libera pra receber e enviar json no body
+    app.listen(PORT, () => {
+        console.log(`server is running on ${PORT}`);
+    });
 
-//rota principa, define o prefixo "/api/quiz" pras rotas do quiz
-app.use("/api/quiz", quizRoutes);
+    app.get ('/getrequest', (req, res)=>{
+        res.json();;
+    });
 
-export default app: // exporta o app pro server.js usar
+    app.post('/post', (req, res)=> {
+        res.json(user);
+    });
