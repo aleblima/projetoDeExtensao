@@ -1,17 +1,13 @@
-    import express from 'express';
-import { user } from './models/User.js';
+import express from 'express';
+
     const app = express();
 
-    const PORT = 3000;
+    app.use(express.json());
 
-    app.listen(PORT, () => {
-        console.log(`server is running on ${PORT}`);
+    app.get('/', (req,res) =>{
+        res.send('API is working');
     });
 
-    app.get ('/getrequest', (req, res)=>{
-        res.json();;
-    });
-
-    app.post('/post', (req, res)=> {
-        res.json(user);
-    });
+    export {
+    app
+};
