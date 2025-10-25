@@ -1,24 +1,33 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8" />    
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Teste Vocacional Online - Descubra sua Carreira Ideal</title>
-    <meta name="description" content="Faça nosso teste vocacional gratuito e descubra qual carreira combina com seu perfil. Teste científico com resultado imediato." />
-    <meta name="author" content="Teste Vocacional" />
+    <title>Validação de Dados</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
 
-    <meta property="og:title" content="Teste Vocacional Online - Descubra sua Carreira Ideal" />
-    <meta property="og:description" content="Faça nosso teste vocacional gratuito e descubra qual carreira combina com seu perfil. Teste científico com resultado imediato." />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+<body>  
+    <div class="page">
+            <form id="formLogin" class="formLogin" method="post">
+            <h1>Login</h1>
+            <p>Digite o seu nome e telefone para acessar:</p>
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-  </head>
+                        <label for="nome">Nome:</label>
+            <input type="text" id="nome" name="nome" placeholder="Digite o seu nome completo" />
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+            <label for="telefone">Telefone</label>
+
+                        <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000" maxlength="15" />
+
+            <button type="submit" class="btn">Acessar</button>
+        </form>
+        
+        <div id="mensagem-container" style="margin-top: 20px; padding: 10px; border: 1px solid transparent; border-radius: 5px;">
+            </div>
+            </div>
+    <script src="script.js"></script>
+</body>
+
 </html>

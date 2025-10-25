@@ -1,23 +1,26 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+git# Ignorar credenciais sensíveis
+service_account.json
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
+# Ambiente virtual
+venv/
+env/
+.venv/
 
-# testing
-/coverage
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
 
-# production
-/build
+# Logs e dados locais
+*.log
+*.sqlite3
 
-# misc
-.DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# Editor/IDE
+.vscode/
+.idea/
 
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Arquivos de ambiente
+.env
+
+node_modules
