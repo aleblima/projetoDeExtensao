@@ -1,6 +1,7 @@
 ## Como rodar o servidor
 
 npm run dev - para inicializar no modo de desenvolvimento
+
 node server.js - para inicializar em produção.
 
 ## link para a documentação do backend
