@@ -3,6 +3,7 @@ function validateAnswers(answers, expectedLength){
         errors.push("Respostas em formato inválido.");
         return errors;
     }
+    const errors = [];
 
     const receivedKeys = Object.keys(answers);
     if (receivedKeys.length === 0){
