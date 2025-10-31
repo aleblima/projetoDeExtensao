@@ -1,8 +1,22 @@
-const answers = {
-    analytic: 4,
-    social: 3,
-    creative: 2,
-    practical: 1
-};
+const answers = [
+    {
+        id: 1,
+        UserID: "usuário",
+        timestamp: new Date().toISOString(),
+        answers: {
+            1: {
+                questionID: 1,
+                value: 4,
+                category: "analytics"
+            },
+            2: {
+                questionID: 2,
+                value: 5,
+                category: "creativity"
+            }
 
-export { answers};
+        }
+    }
+];
+
+export { answers };
