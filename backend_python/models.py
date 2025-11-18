@@ -3,8 +3,8 @@
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
 class LoginData(BaseModel):
-    nome: str
-    telefone: str
+    nome: str = Field(alias="name")
+    telefone: str = Field(alias="phone")
     email: EmailStr
 
 class ResultadoQuestionario(BaseModel):
