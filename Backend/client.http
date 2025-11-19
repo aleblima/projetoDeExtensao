@@ -1,0 +1,17 @@
+
+### Requisição GET
+GET http://localhost:3000/perguntas
+
+### Requisição POST
+POST http://localhost:3000/respostas
+Content-Type: application/json
+
+{
+  "id": 123,
+  "userID": "teste-do-rest-client",
+  "timestamp": "2025-10-30T18:00:00.000Z",
+  "answers": {
+    "1": { "questionID": 1, "value": 4, "category": "analytics" },
+    "2": { "questionID": 2, "value": 5, "category": "creativity" }
+  }
+}
