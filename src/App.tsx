@@ -11,7 +11,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import StudentLogin from "./pages/StudentLogin"; // Garanta que este arquivo exista em src/pages
 import TestPage from "./pages/TestPage";       // Garanta que este arquivo exista em src/pages
-import { Header } from "./components/common/Header";
+import { Header } from "./components/Common/Header";
 
 const queryClient = new QueryClient();
 

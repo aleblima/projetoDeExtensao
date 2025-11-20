@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { BookOpen, TrendingUp, Award, Brain, Target } from "lucide-react";
-import { RegistrationForm } from '@/components/common/RegistrationForm';
+import { RegistrationForm } from '@/components/Common/RegistrationForm';
 
 const Index = () => {
   const popularCourses = [
