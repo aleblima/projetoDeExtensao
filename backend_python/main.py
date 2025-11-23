@@ -6,6 +6,7 @@ import re
 from .models import LoginData, ResultadoQuestionario
 from .auth import create_access_token,decode_access_token
 import backend_python.sheets_service as sheets_service
+from backend_python.sheets_service import write_result_to_sheet
 from fastapi.security import OAuth2PasswordBearer
 import pandas as pd
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login") 
@@ -164,8 +165,8 @@ def submit_results(data: ResultadoQuestionario, token: str = Depends(oauth2_sche
     
     if nome_do_token.lower() != data.nome.strip().lower():
         raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Inconsistência de nome. O nome do token não corresponde ao nome dos dados."
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Inconsistência de nome. O nome do token não corresponde ao nome dos dados."
         )
         
     telefone_busca = telefone_do_token 
@@ -177,14 +178,48 @@ def submit_results(data: ResultadoQuestionario, token: str = Depends(oauth2_sche
         "curso_identificado": data.area_final.strip(),
         "timestamp": datetime.datetime.now().isoformat()
     } 
-    PENDING_DATA_TO_SHEET.append(registro)
-
-    return {
-        "status": "success",
-        "message": "Resultado do questionário armazenado com sucesso, aguardando coleta da Automação.",
-        "data_received": registro
-    }
-
+    
+    # *** NOVA FUNCIONALIDADE: Escreve diretamente na planilha ***
+    try:
+        sucesso = write_result_to_sheet(
+            nome=data.nome,
+            telefone=telefone_busca,
+            email=data.email,
+            curso=data.area_final
+        )
+        
+        if not sucesso:
+            # Se falhar ao escrever, mantém na lista de pendentes como backup
+            PENDING_DATA_TO_SHEET.append(registro)
+            print(f"AVISO: Falha ao escrever na planilha. Dados armazenados em PENDING_DATA_TO_SHEET para {data.nome}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Erro ao salvar o resultado na planilha. Dados armazenados temporariamente."
+            )
+        
+        # Armazena também na lista de pendentes como backup/auditoria
+        PENDING_DATA_TO_SHEET.append(registro)
+        print(f"INFO: Resultado salvo na planilha com sucesso para {data.nome}")
+        
+        return {
+            "status": "success",
+            "message": "Resultado do questionário salvo com sucesso na planilha!",
+            "data_received": registro
+        }
+        
+    except HTTPException:
+        # Re-lança exceções HTTP sem modificar
+        raise
+        
+    except Exception as e:
+        # Captura erros inesperados
+        PENDING_DATA_TO_SHEET.append(registro)
+        print(f"ERRO INESPERADO ao processar resultado: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro inesperado ao processar resultado. Dados armazenados temporariamente."
+        )
+           
 @app.get("/api/coletar_dados_para_planilha")
 def collect_and_clear_data():
     
