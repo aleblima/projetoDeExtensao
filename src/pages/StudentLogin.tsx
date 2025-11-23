@@ -1,280 +1,205 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+//esse diabo ta funcionando, não mexer na logica
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+// Componentes da Shadcn UI
 import { Button } from "@/components/ui/button";
-import ScaleQuestion from "@/components/ScaleQuestion";
-import { Award, Brain, ArrowRight, CheckCircle2 } from "lucide-react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Loader2, Mail } from "lucide-react";
 
-// --- Definição das Perguntas e Tipos ---
+const formSchema = z.object({
+  name: z.string().min(1, { message: "Por favor, preencha o campo Nome." }),
+  phone: z.string()
+    .transform(val => val.replace(/\D/g, ''))
+    .pipe(z.string().min(10, { message: "O telefone deve ter no mínimo 10 dígitos (DDD + número)." }))
+    .pipe(z.string().max(11, { message: "O telefone deve ter no máximo 11 dígitos (DDD + número)." })),
+  email: z.string().email({ message: "Por favor, digite um email válido." }).optional().or(z.literal("")),
+});
 
-type IntelligenceType = 
-  | 'logico_matematica' 
-  | 'linguistica' 
-  | 'espacial' 
-  | 'musical' 
-  | 'corporal_cinestesica' 
-  | 'interpessoal' 
-  | 'intrapessoal' 
-  | 'naturalista' 
-  | 'existencial';
+export function StudentLogin() {
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [serverMessage, setServerMessage] = useState<{ type: 'success' | 'error'; message: string | TrustedHTML } | null>(null);
 
-interface Question {
-  id: number;
-  text: string;
-  category: IntelligenceType;
-}
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { name: "", phone: "", email: "" },
+  });
 
-// Perguntas da Fase 1: Identificar Áreas de Aptidão
-const initialQuestions: Question[] = [
-  { id: 1, text: "Você tem facilidade para resolver problemas matemáticos e pensar logicamente?", category: 'logico_matematica' },
-  { id: 2, text: "Você gosta de ler, escrever ou se expressar verbalmente?", category: 'linguistica' },
-  { id: 3, text: "Consegue visualizar objetos e espaços facilmente, tendo bom senso de orientação?", category: 'espacial' },
-  { id: 4, text: "Tem interesse por música, aprecia tocar instrumentos ou cantar?", category: 'musical' },
-  { id: 5, text: "Aprende melhor através do movimento, gosta de esportes, dança ou trabalhos manuais?", category: 'corporal_cinestesica' },
-  { id: 6, text: "Você se considera uma pessoa que entende bem as emoções e motiva os outros?", category: 'interpessoal' },
-  { id: 7, text: "Prefere trabalhar sozinho, refletir sobre seus sentimentos e ter autoconhecimento?", category: 'intrapessoal' },
-  { id: 8, text: "Tem interesse e facilidade para lidar com a natureza, plantas e animais?", category: 'naturalista' },
-  { id: 9, text: "Costuma fazer perguntas profundas sobre a existência e busca sentido para a vida?", category: 'existencial' }
-];
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    setServerMessage(null);
 
-// Perguntas da Fase 2: Filtro de Profissão (6 perguntas por área para totalizar 15)
-const specificQuestions: Record<IntelligenceType, string[]> = {
-  logico_matematica: [
-    "Você prefere carreiras que envolvam cálculos, análise de dados ou raciocínio estratégico?",
-    "Gostaria de trabalhar em áreas como engenharia, tecnologia, ciência ou finanças?",
-    "Você se sente confortável lidando com orçamentos e projeções financeiras?",
-    "Tem interesse em aprender linguagens de programação ou desenvolvimento de algoritmos?",
-    "Gosta de investigar a causa raiz de problemas complexos e sistematizar soluções?",
-    "Se vê trabalhando em laboratórios de pesquisa ou centros de análise estatística?"
-  ],
-  linguistica: [
-    "Você se vê bem em profissões ligadas a comunicação, escrita, jornalismo ou direito?",
-    "Pretende se especializar em ensino, tradução ou produção de conteúdo?",
-    "Gosta da ideia de revisar textos, editar livros ou roteirizar vídeos?",
-    "Tem facilidade para aprender novos idiomas e culturas?",
-    "Se sente à vontade falando em público ou apresentando ideias para grupos?",
-    "Gostaria de atuar na defesa de causas através de argumentos verbais ou escritos?"
-  ],
-  espacial: [
-    "Tem interesse em design, arquitetura, engenharia civil ou artes visuais?",
-    "Gostaria de atuar com planejamento urbano, animação digital ou fotografia?",
-    "Você gosta de desenhar, pintar ou criar modelos tridimensionais?",
-    "Tem facilidade para imaginar como ficaria a decoração de um ambiente vazio?",
-    "Se interessa por pilotagem, navegação ou cartografia?",
-    "Gostaria de trabalhar com criação de interfaces visuais para aplicativos ou sites?"
-  ],
-  musical: [
-    "Você gostaria de trabalhar com composição, produção musical ou engenharia de som?",
-    "Tem interesse em ensinar música ou teoria musical para outras pessoas?",
-    "Se vê atuando em musicoterapia ou psicologia ligada à arte?",
-    "Gostaria de trabalhar com curadoria musical ou crítica de arte?",
-    "Tem interesse pela parte técnica de shows, como acústica e sonorização?",
-    "Imagina-se gerenciando carreiras de artistas ou eventos musicais?"
-  ],
-  corporal_cinestesica: [
-    "Gostaria de trabalhar com educação física, fisioterapia ou esportes de alto rendimento?",
-    "Tem interesse em artes cênicas, dança ou performance corporal?",
-    "Prefere trabalhos manuais que exijam precisão, como cirurgia, odontologia ou artesanato?",
-    "Gosta da ideia de construir ou consertar objetos e máquinas?",
-    "Se vê trabalhando ao ar livre e em movimento constante, em vez de um escritório?",
-    "Tem interesse em ergonomia e em como o corpo humano interage com objetos?"
-  ],
-  interpessoal: [
-    "Gostaria de atuar em psicologia, recursos humanos ou assistência social?",
-    "Tem interesse em vendas, negociação ou liderança de equipes?",
-    "Se vê trabalhando com diplomacia, relações públicas ou política?",
-    "Gosta da ideia de organizar eventos e gerenciar comunidades?",
-    "Tem facilidade para mediar conflitos e encontrar soluções em grupo?",
-    "Gostaria de ser professor ou mentor, guiando o desenvolvimento de outras pessoas?"
-  ],
-  intrapessoal: [
-    "Gostaria de atuar como pesquisador, escritor ou filósofo?",
-    "Tem interesse em psicologia clínica ou terapia focada no indivíduo?",
-    "Prefere atuar como consultor autônomo, definindo seus próprios horários e metas?",
-    "Gosta de planejar estratégias de longo prazo e trabalhar com metas pessoais?",
-    "Se interessa por teologia ou estudos sobre espiritualidade?",
-    "Gostaria de criar seu próprio negócio e empreender de forma independente?"
-  ],
-  naturalista: [
-    "Gostaria de trabalhar com biologia, veterinária, agronomia ou zootecnia?",
-    "Tem interesse em preservação ambiental, ecologia ou geologia?",
-    "Se vê atuando em parques nacionais, reservas florestais ou oceanografia?",
-    "Gosta da ideia de trabalhar com paisagismo ou jardinagem?",
-    "Tem interesse em meteorologia ou estudo de fenômenos climáticos?",
-    "Gostaria de pesquisar novas fontes de energia sustentável ou biotecnologia?"
-  ],
-  existencial: [
-    "Gostaria de atuar em filosofia, teologia ou sociologia?",
-    "Tem interesse em trabalhar com ONGs e causas humanitárias globais?",
-    "Se vê atuando como conselheiro ético ou em comitês de bioética?",
-    "Gosta de estudar história das religiões ou antropologia?",
-    "Tem interesse em literatura clássica e análise de obras profundas?",
-    "Gostaria de trabalhar com meditação, yoga ou práticas de bem-estar integral?"
-  ]
-};
+    try {
+      const normalizedPhone = "+55" + values.phone;
 
-const TestPage = () => {
-  // Estados do Teste
-  const [phase, setPhase] = useState<'initial' | 'specific' | 'result'>('initial');
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  
-  // Armazena pontuações: { logico_matematica: 15, linguistica: 10, ... }
-  const [scores, setScores] = useState<Record<string, number>>({});
-  
-  // Armazena a inteligência predominante identificada na Fase 1
-  const [dominantIntelligence, setDominantIntelligence] = useState<IntelligenceType | null>(null);
+      const response = await fetch("http://127.0.0.1:8000/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: values.name,
+          phone: normalizedPhone,
+          email: values.email || null
+        }),
+      });
 
-  // Função para lidar com a resposta (1 a 5)
-  const handleAnswer = (value: number) => {
-    if (phase === 'initial') {
-      // Lógica da Fase 1
-      const currentCategory = initialQuestions[currentQuestionIndex].category;
-      
-      setScores(prev => ({
-        ...prev,
-        [currentCategory]: (prev[currentCategory] || 0) + value
-      }));
+      const data = await response.json();
 
-      setTimeout(() => {
-        if (currentQuestionIndex < initialQuestions.length - 1) {
-          setCurrentQuestionIndex(currentQuestionIndex + 1);
+      if (response.ok) {
+        const token = data.access_token;
+        localStorage.setItem('accessToken', token);
+
+        let successHtml = `<h4>✅ Login Bem-Sucedido!</h4>`;
+        successHtml += `<p><strong>Status do Sistema:</strong> ${data.message}</p>`;
+
+        if (data.curso) {
+          successHtml += `<p><strong>Curso Realizado:</strong> ${data.curso}</p>`;
         } else {
-          calculateDominantAndAdvance();
+          successHtml += `<p><strong>Próximo Passo:</strong> Prossiga para o questionário.</p>`;
         }
-      }, 400);
 
-    } else if (phase === 'specific') {
-      // Lógica da Fase 2 (Apenas avança, pois é um filtro de confirmação)
-      // Aqui poderíamos armazenar respostas específicas se necessário
-      setTimeout(() => {
-        const totalSpecific = dominantIntelligence ? specificQuestions[dominantIntelligence].length : 0;
-        if (currentQuestionIndex < totalSpecific - 1) {
-          setCurrentQuestionIndex(currentQuestionIndex + 1);
-        } else {
-          setPhase('result');
-        }
-      }, 400);
-    }
-  };
+        setServerMessage({ type: 'success', message: successHtml });
 
-  // Calcula qual categoria venceu e avança para a Fase 2
-  const calculateDominantAndAdvance = () => {
-    let maxScore = -1;
-    let winner: IntelligenceType = 'logico_matematica'; // Default
-
-    // Encontra a maior pontuação
-    (Object.keys(scores) as IntelligenceType[]).forEach(key => {
-      if (scores[key] > maxScore) {
-        maxScore = scores[key];
-        winner = key;
+      } else {
+        const errorMessage = data.detail || "Erro desconhecido. Por favor, tente novamente.";
+        setServerMessage({ type: 'error', message: `<h4>❌ Erro ao Acessar (${response.status})</h4><p>${errorMessage}</p>` });
       }
-    });
 
-    setDominantIntelligence(winner);
-    setPhase('specific');
-    setCurrentQuestionIndex(0); // Reseta o índice para as perguntas específicas
-  };
-
-  const resetTest = () => {
-    setPhase('initial');
-    setCurrentQuestionIndex(0);
-    setScores({});
-    setDominantIntelligence(null);
-  };
-
-  // Renderização dos nomes amigáveis das áreas
-  const formatCategoryName = (cat: string) => {
-    return cat.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-  };
+    } catch (error) {
+      setServerMessage({ type: 'error', message: '<h4>❌ Erro de Conexão</h4><p>Não foi possível conectar ao servidor. Verifique se o backend está rodando.</p>' });
+      console.error('Erro de rede:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
-    <div className="bg-background">
-      <section className="py-16 px-4">
-        <div className="max-w-4xl mx-auto">
-          
-          {/* Cabeçalho do Teste */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
-              <Brain className="w-8 h-8 text-primary" />
-            </div>
-            <h2 className="text-3xl font-bold mb-4">Teste Vocacional Oficial</h2>
-            <p className="text-muted-foreground">
-              {phase === 'initial' 
-                ? "Fase 1: Descobrindo suas aptidões principais." 
-                : phase === 'specific' 
-                ? `Fase 2: Explorando seu perfil ${formatCategoryName(dominantIntelligence || '')}.`
-                : "Resultado da sua análise."}
-            </p>
-          </div>
+    <div className="flex min-h-screen w-full items-center justify-center 
+    bg-gradient-to-br from-[#188eee] to-[#24eaaf] p-4 font-['Inter',_sans-serif]">
 
-          {/* Conteúdo do Teste */}
-          {phase !== 'result' ? (
-            <div className="space-y-8 max-w-4xl mx-auto">
-              {/* Barra de Progresso Simples */}
-              <div className="w-full bg-muted rounded-full h-2 mb-8">
-                <div 
-                  className="bg-primary h-2 rounded-full transition-all duration-500"
-                  style={{ 
-                    width: phase === 'initial' 
-                      ? `${((currentQuestionIndex + 1) / initialQuestions.length) * 100}%`
-                      : `${((currentQuestionIndex + 1) / 6) * 100}%` // 6 perguntas na fase 2
-                  }}
-                ></div>
-              </div>
-              
-              <div className="text-center text-sm text-muted-foreground mb-4">
-                {phase === 'initial' ? 'Avaliação Geral' : 'Filtro de Especialização'} • Pergunta {currentQuestionIndex + 1}
-              </div>
+      <div className="w-full max-w-md rounded-[7px] bg-white p-[40px] shadow-[10px_10px_40px_rgba(0,0,0,0.4)] space-y-[5px]">
 
-              {/* Renderiza a Pergunta Atual */}
-              <ScaleQuestion
-                question={
-                  phase === 'initial' 
-                    ? initialQuestions[currentQuestionIndex].text 
-                    : (dominantIntelligence ? specificQuestions[dominantIntelligence][currentQuestionIndex] : "")
-                }
-                onAnswer={handleAnswer}
-                // A key força o componente a "remontar" quando a pergunta muda, resetando animações
-                key={`${phase}-${currentQuestionIndex}`}
+        <h1 className="text-center text-[2.3em] font-medium mb-[10px]">Login</h1>
+        <p className="text-center text-[14px] text-[#888888] mb-[20px]">Digite seus dados para acessar:</p>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-[15px]">
+
+            {/* Campo Nome */}
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[1em] font-semibold text-[#555]">Nome:</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Digite o seu nome completo"
+                      {...field}
+                      className="w-full rounded-[7px] border border-[#f0f0f0] p-[15px] 
+                      text-[15px] text-[#555] outline-none focus:border-[#1a764b] 
+                      focus:shadow-[0_0_10px_#1a764b]"
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-[12px] text-red-600" />
+                </FormItem>
+              )}
+            />
+
+            {/* Campo Telefone */}
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[1em] font-semibold text-[#555]">Telefone</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="tel"
+                      placeholder="(00) 00000-0000"
+                      maxLength={15}
+                      {...field}
+                      className="w-full rounded-[7px] border border-[#f0f0f0] p-[15px] 
+                      text-[15px] text-[#555] outline-none focus:border-[#1a764b] 
+                      focus:shadow-[0_0_10px_#1a764b]"
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-[12px] text-red-600" />
+                </FormItem>
+              )}
+            />
+
+            {/* Campo Email */}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[1em] font-semibold text-[#555]">Email</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                      <Input
+                        type="email"
+                        placeholder="Digite o seu email"
+                        {...field}
+                        className="w-full rounded-[7px] border border-[#f0f0f0] p-[15px] pl-10 
+                        text-[15px] text-[#555] outline-none focus:border-[#1a764b] 
+                        focus:shadow-[0_0_10px_#1a764b]"
+                        disabled={isLoading}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage className="text-[12px] text-red-600" />
+                </FormItem>
+              )}
+            />
+
+            {/* Mensagens */}
+            {serverMessage && (
+              <div
+                className={`mt-[20px] rounded-[5px] border p-[10px] text-center text-sm font-medium ${
+                  serverMessage.type === 'success'
+                    ? 'border-[#4CAF50] bg-[#e8f5e9] text-[#1b5e20]'
+                    : 'border-[#f44336] bg-[#ffebee] text-[#b71c1c]'
+                }`}
+                dangerouslySetInnerHTML={{ __html: serverMessage.message }}
               />
-            </div>
-          ) : (
-            // Tela de Resultado
-            <Card className="max-w-2xl mx-auto text-center border-t-4 border-primary shadow-lg">
-              <CardHeader>
-                <div className="mx-auto mb-6 w-20 h-20 bg-green-100 rounded-full flex items-center justify-center animate-in zoom-in duration-500">
-                  <Award className="w-10 h-10 text-green-600" />
-                </div>
-                <CardTitle className="text-3xl mb-2">Análise Concluída!</CardTitle>
-                <CardDescription className="text-lg">
-                  Identificamos que o seu perfil predominante é:
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-primary/5 rounded-xl p-8 mb-8">
-                  <h3 className="text-2xl font-bold text-primary mb-4 flex items-center justify-center gap-2">
-                    <CheckCircle2 className="w-6 h-6" />
-                    Inteligência {formatCategoryName(dominantIntelligence || '')}
-                  </h3>
-                  <p className="text-muted-foreground text-lg leading-relaxed">
-                    Você demonstrou uma forte aptidão nesta área durante a triagem inicial e confirmou seus interesses através do filtro de especialização. Profissões que valorizam essa competência tendem a trazer maior satisfação e sucesso para você.
-                  </p>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button onClick={resetTest} variant="outline" className="w-full sm:w-auto">
-                    Refazer Teste
-                  </Button>
-                  <Button className="w-full sm:w-auto gap-2">
-                    Ver Cursos Relacionados <ArrowRight className="w-4 h-4"/>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </section>
+            )}
+
+            {/* Botão atualizado */}
+            <Button
+              type="submit"
+              className="w-full cursor-pointer rounded-[7px] 
+              bg-gradient-to-r from-[#188eee] to-[#24eaaf]
+              py-[15px] px-[40px] text-center text-[1.25em] font-bold uppercase 
+              text-white shadow-[0_5px_10px_rgba(0,0,0,0.4)] 
+              transition-all hover:opacity-90"
+              disabled={isLoading}
+            >
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isLoading ? "Validando..." : "Acessar"}
+            </Button>
+
+          </form>
+        </Form>
+
+      </div>
     </div>
   );
-};
+}
 
-export default TestPage;
+export default StudentLogin;
