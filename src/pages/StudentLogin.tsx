@@ -56,29 +56,42 @@ export function StudentLogin() {
 
       const data = await response.json();
 
-      if (response.ok) {
-        const token = data.access_token;
-        localStorage.setItem('accessToken', token);
-
-        let successHtml = `<h4>✅ Login Bem-Sucedido!</h4>`;
-        successHtml += `<p><strong>Status do Sistema:</strong> ${data.message}</p>`;
-
-        if (data.curso) {
-          successHtml += `<p><strong>Curso Realizado:</strong> ${data.curso}</p>`;
-        } else {
-          successHtml += `<p><strong>Próximo Passo:</strong> Prossiga para o questionário.</p>`;
-        }
-
-        setServerMessage({ type: 'success', message: successHtml });
-
-      } else {
-        const errorMessage = data.detail || "Erro desconhecido. Por favor, tente novamente.";
-        setServerMessage({ type: 'error', message: `<h4>❌ Erro ao Acessar (${response.status})</h4><p>${errorMessage}</p>` });
+      if (!response.ok) {
+        setServerMessage({ type: "error", message: data.detail });
+        setIsLoading(false);
+        return;
       }
 
-    } catch (error) {
-      setServerMessage({ type: 'error', message: '<h4>❌ Erro de Conexão</h4><p>Não foi possível conectar ao servidor. Verifique se o backend está rodando.</p>' });
-      console.error('Erro de rede:', error);
+      // Salvar dados no localStorage
+      localStorage.setItem("isLogged", "true");
+      localStorage.setItem("telefone", data.telefone);  // <-- correto
+      localStorage.setItem("nome", data.nome);
+      localStorage.setItem("email", data.email);
+
+      // -------------------------------
+      // CONSULTA AO BACKEND (CORRIGIDO)
+      // -------------------------------
+      const check = await fetch(
+  `http://localhost:8000/api/test_access?telefone=${normalizedPhone}`
+);
+
+
+      const checkData = await check.json();
+
+      // -------------------------------
+      // REDIRECIONAMENTO FINAL
+      // -------------------------------
+      if (checkData.canProceed) {
+        navigate("/teste");          // página do questionário
+      } else {
+        navigate("/resultado");      // página do curso recomendado
+      }
+
+    } catch (e) {
+      setServerMessage({
+        type: "error",
+        message: "Erro inesperado ao conectar ao servidor",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -109,7 +122,7 @@ export function StudentLogin() {
                       {...field}
                       className="w-full rounded-[7px] border border-[#f0f0f0] p-[15px] 
                       text-[15px] text-[#555] outline-none focus:border-[#1a764b] 
-                      focus:shadow-[0_0_10px_#1a764b]"
+                      focus:shadow-[0_0_10px_#11a764b]"
                       disabled={isLoading}
                     />
                   </FormControl>
@@ -180,7 +193,6 @@ export function StudentLogin() {
               />
             )}
 
-            {/* Botão atualizado */}
             <Button
               type="submit"
               className="w-full cursor-pointer rounded-[7px] 

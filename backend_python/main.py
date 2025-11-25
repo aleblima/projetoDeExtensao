@@ -219,6 +219,30 @@ def submit_results(data: ResultadoQuestionario, token: str = Depends(oauth2_sche
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erro inesperado ao processar resultado. Dados armazenados temporariamente."
         )
+@app.get("/api/test_access")
+def test_access(telefone: str):
+    # Valida se a planilha carregou
+    if sheets_service.STUDENTS_DATABASE is None or sheets_service.STUDENTS_DATABASE.empty:
+        return {"canProceed": True}
+    
+    telefone_busca_limpo = re.sub(r'[^\d]', '', telefone.strip())
+    
+    user = sheets_service.STUDENTS_DATABASE[
+        sheets_service.STUDENTS_DATABASE["TELEFONE"].astype(str) == telefone_busca_limpo
+    ]
+
+    # Se não encontrou → aluno novo → pode fazer o teste
+    if user.empty:
+        return {"canProceed": True}
+
+    # Se encontrou, verifica se já tem curso
+    curso = user.iloc[0].get("CURSO_REALIZADO", "")
+
+    if curso is None or str(curso).strip() == "":
+        return {"canProceed": True}   # → vai para /teste
+    else:
+        return {"canProceed": False}  # → vai para /resultado
+
            
 @app.get("/api/coletar_dados_para_planilha")
 def collect_and_clear_data():
@@ -234,3 +258,4 @@ def collect_and_clear_data():
         "count": len(data_to_send),
         "data": data_to_send
     }
+collect_and_clear_data()
