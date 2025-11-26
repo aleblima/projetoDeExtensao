@@ -11,6 +11,8 @@ const ResultsPage= () => {
   const location = useLocation();
   const navigate = useNavigate();
   const state = location.state as any | undefined;
+  const { scores, dominantIntelligence } = state || {};
+
 
   // Support different payloads coming from TestPage:
   // - { answers: number[] }
