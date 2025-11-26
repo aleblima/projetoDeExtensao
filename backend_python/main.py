@@ -1,3 +1,11 @@
+import os 
+from dotenv import load_dotenv
+env_path = os.path.join(os.path.dirname(__file__), ".env")
+print("DEBUG PATH:", env_path)
+
+load_dotenv(env_path)
+load_dotenv()
+print("DEBUG CRED:", os.getenv("GOOGLE_CREDENTIALS_B64"))
 from fastapi import FastAPI, HTTPException, status, Depends
 from pydantic import BaseModel,Field,EmailStr
 import phonenumbers

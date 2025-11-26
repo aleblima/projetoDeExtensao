@@ -1,20 +1,19 @@
+import { useNavigate } from 'react-router-dom';
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import ScaleQuestion from "@/components/ScaleQuestion";
 import { Award, Brain, ArrowRight, CheckCircle2 } from "lucide-react";
 
-// --- Definição das Perguntas e Tipos ---
-
-type IntelligenceType = 
-  | 'logico_matematica' 
-  | 'linguistica' 
-  | 'espacial' 
-  | 'musical' 
-  | 'corporal_cinestesica' 
-  | 'interpessoal' 
-  | 'intrapessoal' 
-  | 'naturalista' 
+type IntelligenceType =
+  | 'logico_matematica'
+  | 'linguistica'
+  | 'espacial'
+  | 'musical'
+  | 'corporal_cinestesica'
+  | 'interpessoal'
+  | 'intrapessoal'
+  | 'naturalista'
   | 'existencial';
 
 interface Question {
@@ -23,7 +22,19 @@ interface Question {
   category: IntelligenceType;
 }
 
-// Perguntas da Fase 1: Identificar Áreas de Aptidão
+const categoryDisplayNames: Record<IntelligenceType, string> = {
+  logico_matematica: "Lógico-Matemática",
+  linguistica: "Linguística",
+  espacial: "Espacial",
+  musical: "Musical",
+  corporal_cinestesica: "Corporal-Cinestésica",
+  interpessoal: "Interpessoal",
+  intrapessoal: "Intrapessoal",
+  naturalista: "Naturalista",
+  existencial: "Existencial"
+};
+
+// Fase 1
 const initialQuestions: Question[] = [
   { id: 1, text: "Você tem facilidade para resolver problemas matemáticos e pensar logicamente?", category: 'logico_matematica' },
   { id: 2, text: "Você gosta de ler, escrever ou se expressar verbalmente?", category: 'linguistica' },
@@ -36,7 +47,7 @@ const initialQuestions: Question[] = [
   { id: 9, text: "Costuma fazer perguntas profundas sobre a existência e busca sentido para a vida?", category: 'existencial' }
 ];
 
-// Perguntas da Fase 2: Filtro de Profissão (6 perguntas por área para totalizar 15)
+// Fase 2
 const specificQuestions: Record<IntelligenceType, string[]> = {
   logico_matematica: [
     "Você prefere carreiras que envolvam cálculos, análise de dados ou raciocínio estratégico?",
@@ -113,164 +124,135 @@ const specificQuestions: Record<IntelligenceType, string[]> = {
 };
 
 const TestPage = () => {
-  // Estados do Teste
-  const [phase, setPhase] = useState<'initial' | 'specific' | 'result'>('initial');
+  const navigate = useNavigate();
+
+  const [phase, setPhase] = useState<'initial' | 'specific'>('initial');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  
-  // Armazena pontuações: { logico_matematica: 15, linguistica: 10, ... }
+  const [answers, setAnswers] = useState<number[]>(Array(initialQuestions.length).fill(0));
   const [scores, setScores] = useState<Record<string, number>>({});
-  
-  // Armazena a inteligência predominante identificada na Fase 1
   const [dominantIntelligence, setDominantIntelligence] = useState<IntelligenceType | null>(null);
 
-  // Função para lidar com a resposta (1 a 5)
   const handleAnswer = (value: number) => {
-    if (phase === 'initial') {
-      // Lógica da Fase 1
-      const currentCategory = initialQuestions[currentQuestionIndex].category;
-      
-      setScores(prev => ({
-        ...prev,
-        [currentCategory]: (prev[currentCategory] || 0) + value
-      }));
+    if (phase === "initial") {
+      const newAnswers = [...answers];
+      newAnswers[currentQuestionIndex] = value;
+      setAnswers(newAnswers);
+
+      const cat = initialQuestions[currentQuestionIndex].category;
+      const newScores = { ...scores, [cat]: (scores[cat] || 0) + value };
+      setScores(newScores);
 
       setTimeout(() => {
         if (currentQuestionIndex < initialQuestions.length - 1) {
-          setCurrentQuestionIndex(currentQuestionIndex + 1);
+          setCurrentQuestionIndex(prev => prev + 1);
         } else {
-          calculateDominantAndAdvance();
+          calculateDominantAndAdvance(newScores);
         }
       }, 400);
+    }
 
-    } else if (phase === 'specific') {
-      // Lógica da Fase 2 (Apenas avança, pois é um filtro de confirmação)
-      // Aqui poderíamos armazenar respostas específicas se necessário
+    else if (phase === "specific" && dominantIntelligence) {
+      const cat = dominantIntelligence;
+      
+      const newScores = { ...scores, [cat]: (scores[cat] || 0) + value };
+      setScores(newScores);
+
       setTimeout(() => {
-        const totalSpecific = dominantIntelligence ? specificQuestions[dominantIntelligence].length : 0;
-        if (currentQuestionIndex < totalSpecific - 1) {
-          setCurrentQuestionIndex(currentQuestionIndex + 1);
+        const total = specificQuestions[cat].length;
+
+        if (currentQuestionIndex < total - 1) {
+          setCurrentQuestionIndex(prev => prev + 1);
         } else {
-          setPhase('result');
+          const chartData = Object.entries(newScores).map(([key, val]) => ({
+            name: categoryDisplayNames[key as IntelligenceType],
+            score: Math.min(100, Math.max(0, val * 10))
+          }));
+
+          navigate("/resultado", {
+            state: {
+              answers,
+              chartData,
+              scores: newScores,
+              dominantIntelligence
+            }
+          });
         }
       }, 400);
     }
   };
 
-  // Calcula qual categoria venceu e avança para a Fase 2
-  const calculateDominantAndAdvance = () => {
-    let maxScore = -1;
-    let winner: IntelligenceType = 'logico_matematica'; // Default
+  const calculateDominantAndAdvance = (currentScores: Record<string, number>) => {
+    let max = -1;
+    let winner: IntelligenceType = "logico_matematica";
 
-    // Encontra a maior pontuação
-    (Object.keys(scores) as IntelligenceType[]).forEach(key => {
-      if (scores[key] > maxScore) {
-        maxScore = scores[key];
-        winner = key;
+    Object.entries(currentScores).forEach(([key, value]) => {
+      if (value > max) {
+        max = value;
+        winner = key as IntelligenceType;
       }
     });
 
     setDominantIntelligence(winner);
-    setPhase('specific');
-    setCurrentQuestionIndex(0); // Reseta o índice para as perguntas específicas
-  };
-
-  const resetTest = () => {
-    setPhase('initial');
+    setPhase("specific");
     setCurrentQuestionIndex(0);
-    setScores({});
-    setDominantIntelligence(null);
   };
 
-  // Renderização dos nomes amigáveis das áreas
-  const formatCategoryName = (cat: string) => {
-    return cat.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-  };
+  const formatCategoryName = (cat: string) =>
+    cat.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 
   return (
     <div className="bg-background">
       <section className="py-16 px-4">
         <div className="max-w-4xl mx-auto">
-          
-          {/* Cabeçalho do Teste */}
+
           <div className="text-center mb-12">
             <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
               <Brain className="w-8 h-8 text-primary" />
             </div>
+
             <h2 className="text-3xl font-bold mb-4">Teste Vocacional</h2>
-            <p className="">
-              {phase === 'initial' 
-                ? "Fase 1: Descobrindo suas aptidões principais." 
-                : phase === 'specific' 
-                ? `Fase 2: Explorando seu perfil ${formatCategoryName(dominantIntelligence || '')}.`
-                : "Resultado da sua análise."}
+
+            <p>
+              {phase === "initial"
+                ? "Fase 1: Descobrindo suas aptidões principais."
+                : `Fase 2: Explorando seu perfil ${formatCategoryName(dominantIntelligence || "")}.`}
             </p>
           </div>
 
-          {/* Conteúdo do Teste */}
-          {phase !== 'result' ? (
-            <div className="space-y-8 max-w-4xl mx-auto">
-              {/* Barra de Progresso Simples */}
-              <div className="w-full bg-muted rounded-full h-2 mb-8">
-                <div 
-                  className="bg-primary h-2 rounded-full transition-all duration-500"
-                  style={{ 
-                    width: phase === 'initial' 
-                      ? `${((currentQuestionIndex + 1) / initialQuestions.length) * 100}%`
-                      : `${((currentQuestionIndex + 1) / 6) * 100}%` // 6 perguntas na fase 2
-                  }}
-                ></div>
-              </div>
-              
-              <div className="text-center text-sm text-muted-foreground mb-4">
-                {phase === 'initial' ? 'Avaliação Geral' : 'Filtro de Especialização'} • Pergunta {currentQuestionIndex + 1}
-              </div>
+          <div className="space-y-8 max-w-4xl mx-auto">
 
-              {/* Renderiza a Pergunta Atual */}
-              <ScaleQuestion
-                question={
-                  phase === 'initial' 
-                    ? initialQuestions[currentQuestionIndex].text 
-                    : (dominantIntelligence ? specificQuestions[dominantIntelligence][currentQuestionIndex] : "")
-                }
-                onAnswer={handleAnswer}
-                // A key força o componente a "remontar" quando a pergunta muda, resetando animações
-                key={`${phase}-${currentQuestionIndex}`}
-              />
+            <div className="w-full bg-muted rounded-full h-2 mb-8">
+              <div
+                className="bg-primary h-2 rounded-full transition-all duration-500"
+                style={{
+                  width:
+                    phase === "initial"
+                      ? `${((currentQuestionIndex + 1) / initialQuestions.length) * 100}%`
+                      : `${(
+                          (currentQuestionIndex + 1) /
+                          (dominantIntelligence ? specificQuestions[dominantIntelligence].length : 1)
+                        ) * 100}%`
+                }}
+              ></div>
             </div>
-          ) : (
-            // Tela de Resultado
-            <Card className="max-w-2xl mx-auto text-center border-t-4 border-primary shadow-lg">
-              <CardHeader>
-                <div className="mx-auto mb-6 w-20 h-20 bg-green-100 rounded-full flex items-center justify-center animate-in zoom-in duration-500">
-                  <Award className="w-10 h-10 text-green-600" />
-                </div>
-                <CardTitle className="text-3xl mb-2">Análise Concluída!</CardTitle>
-                <CardDescription className="text-lg">
-                  Identificamos que o seu perfil predominante é:
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-primary/5 rounded-xl p-8 mb-8">
-                  <h3 className="text-2xl font-bold text-primary mb-4 flex items-center justify-center gap-2">
-                    <CheckCircle2 className="w-6 h-6" />
-                    Inteligência {formatCategoryName(dominantIntelligence || '')}
-                  </h3>
-                  <p className="text-muted-foreground text-lg leading-relaxed">
-                    Você demonstrou uma forte aptidão nesta área durante a triagem inicial e confirmou seus interesses através do filtro de especialização. Profissões que valorizam essa competência tendem a trazer maior satisfação e sucesso para você.
-                  </p>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button onClick={resetTest} variant="outline" className="w-full sm:w-auto">
-                    Refazer Teste
-                  </Button>
-                  <Button className="w-full sm:w-auto gap-2">
-                    Ver Cursos Relacionados <ArrowRight className="w-4 h-4"/>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+
+            <div className="text-center text-sm text-muted-foreground mb-4">
+              Pergunta {currentQuestionIndex + 1}
+            </div>
+
+            <ScaleQuestion
+              question={
+                phase === "initial"
+                  ? initialQuestions[currentQuestionIndex].text
+                  : dominantIntelligence
+                  ? specificQuestions[dominantIntelligence][currentQuestionIndex]
+                  : ""
+              }
+              onAnswer={handleAnswer}
+              key={`${phase}-${currentQuestionIndex}`}
+            />
+          </div>
+
         </div>
       </section>
     </div>

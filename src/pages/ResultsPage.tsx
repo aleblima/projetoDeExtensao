@@ -1,129 +1,224 @@
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell
+} from "recharts";
 import { Award, Brain, ArrowLeft } from "lucide-react";
 
-const ResultsPage= () => {
+const ResultsPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const state = location.state as any | undefined;
 
-  // Support different payloads coming from TestPage:
-  // - { answers: number[] }
-  // - { chartData: Array<{ name, score }> }
-  // - { scores: Record<string, number> }
-  const incomingAnswers: number[] | undefined = Array.isArray(state?.answers) ? state.answers : undefined;
-  const incomingChart: Array<{ name: string; score: number }> | undefined = Array.isArray(state?.chartData) ? state.chartData : undefined;
-  const incomingScoresObj: Record<string, number> | undefined = state?.scores && typeof state.scores === "object" ? state.scores : undefined;
+  const state = location.state as any | undefined;
+  const incomingAnswers = Array.isArray(state?.answers) ? state.answers : undefined;
+  const incomingChart = Array.isArray(state?.chartData) ? state.chartData : undefined;
+  const incomingScoresObj =
+    state?.scores && typeof state.scores === "object" ? state.scores : undefined;
 
   const [professions, setProfessions] = useState("");
 
   useEffect(() => {
-    const hasData = (incomingAnswers && incomingAnswers.length > 0) || (incomingChart && incomingChart.length > 0) || (incomingScoresObj && Object.keys(incomingScoresObj).length > 0);
-    if (!hasData) {
-      navigate("/teste");
-    }
+    const hasData =
+      (incomingAnswers && incomingAnswers.length > 0) ||
+      (incomingChart && incomingChart.length > 0) ||
+      (incomingScoresObj && Object.keys(incomingScoresObj).length > 0);
+
+    if (!hasData) navigate("/teste");
   }, [incomingAnswers, incomingChart, incomingScoresObj, navigate]);
 
-  if (!incomingAnswers && !incomingChart && !incomingScoresObj) {
-    return null;
-  }
+  if (!incomingAnswers && !incomingChart && !incomingScoresObj) return null;
 
-  // Categorize questions into vocational areas
   const categories = [
-    { name: "Lógico-Matemática", baseQuestions: [0], especificQuestions:[] },
-    { name: "Linguística", baseQuestions: [1] },
-    { name: "Espacial", baseQuestions: [2] },
-    { name: "Musical", baseQuestions: [3] },
-    { name: "Corporal-Cinestésica", baseQuestions: [4] },
-    { name: "Interpessoal", baseQuestions: [5] },
-    { name: "Intrapessoal", baseQuestions: [6] },
-    { name: "Naturalista", baseQuestions: [7] },
-    { name: "Existencial", baseQuestions: [8] },
+    { name: "Lógico-Matemática", key: "logico_matematica", baseQuestions: [0] },
+    { name: "Linguística", key: "linguistica", baseQuestions: [1] },
+    { name: "Espacial", key: "espacial", baseQuestions: [2] },
+    { name: "Musical", key: "musical", baseQuestions: [3] },
+    { name: "Corporal-Cinestésica", key: "corporal_cinestesica", baseQuestions: [4] },
+    { name: "Interpessoal", key: "interpessoal", baseQuestions: [5] },
+    { name: "Intrapessoal", key: "intrapessoal", baseQuestions: [6] },
+    { name: "Naturalista", key: "naturalista", baseQuestions: [7] },
+    { name: "Existencial", key: "existencial", baseQuestions: [8] }
   ];
 
-  // helper to normalize strings to keys (remove accents, spaces -> underscore)
   const normalizeKey = (s: string) =>
     s
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/\s+/g, "_")
-      .replace(/[^\w_]/g, "");
+      .replace(/[^\w_]/g, "")
+      .toLowerCase();
 
-  // Calculate chartData from whichever incoming source is available
   const chartData = (() => {
     if (incomingChart) {
-      return incomingChart.map((c) => ({ name: c.name, score: Math.round(c.score) }));
-    }
-
-    if (incomingScoresObj) {
-      return categories.map((cat) => ({
-        name: cat.name,
-        score: Math.round(incomingScoresObj[cat.name] ?? incomingScoresObj[normalizeKey(cat.name)] ?? 0),
+      return incomingChart.map((c) => ({
+        name: c.name,
+        score: Math.round(c.score),
+        key: normalizeKey(c.name)
       }));
     }
 
-    // Fallback: compute from answers array
-    return categories.map((category) => {
-      const total = category.baseQuestions.reduce((sum, qIndex) => sum + (incomingAnswers?.[qIndex] || 0), 0);
-      const average = total / category.baseQuestions.length;
+    if (incomingScoresObj) {
+      return categories.map((cat) => {
+        const score = incomingScoresObj[cat.key] || incomingScoresObj[cat.name] || 0;
+        return {
+          name: cat.name,
+          score: Math.min(100, Math.max(0, Math.round(score))),
+          key: cat.key
+        };
+      });
+    }
+
+    return categories.map((cat) => {
+      const total = cat.baseQuestions.reduce(
+        (acc, idx) => acc + (incomingAnswers?.[idx] || 0),
+        0
+      );
+      const avg = total / cat.baseQuestions.length;
       return {
-        name: category.name,
-        score: Math.round(average * 20), // Convert to 0-100 scale
+        name: cat.name,
+        score: Math.min(100, Math.max(0, Math.round(avg * 20))),
+        key: cat.key
       };
     });
   })();
 
-  // Sort by score to find top 3
   const sortedCategories = [...chartData].sort((a, b) => b.score - a.score);
   const topCategories = sortedCategories.slice(0, 3);
 
-  // Profession recommendations based on normalized category names
   const professionMap: Record<string, string[]> = {
-    Logico_Matematica: ["Cientista de Dados", "Engenheiro", "Analista de Dados"],
-    Linguistica: ["Jornalista", "Redator Publicitário", "Tradutor/Intérprete"],
-    Espacial: ["Arquiteto", "Designer Gráfico", "Engenheiro Civil"],
-    Musical: ["Produtor Musical", "Músico/Instrumentista", "Compositor"],
-    Corporal_Cinestesica: ["Fisioterapeuta", "Ator/Dançarino", "Educador Físico"],
-    Interpessoal: ["Psicólogo", "Gestor de Recursos Humanos", "Professor"],
-    Intrapessoal: ["Terapeuta Holístico", "Filósofo", "Escritor"],
-    Naturalista: ["Biólogo", "Engenheiro Ambiental", "Agrônomo"],
-    Existencial: ["Filósofo", "Teólogo", "Pesquisador de Ciências Humanas"],
+    logico_matematica: [
+      "Cientista de Dados",
+      "Engenheiro",
+      "Analista de Dados",
+      "Programador",
+      "Matemático",
+      "Estatístico",
+      "Arquiteto de Software"
+    ],
+    linguistica: [
+      "Jornalista",
+      "Copywriter",
+      "Tradutor",
+      "Escritor",
+      "Professor de Línguas",
+      "Revisor",
+      "Roteirista"
+    ],
+    espacial: [
+      "Arquiteto",
+      "Designer Gráfico",
+      "Engenheiro Civil",
+      "Urbanista",
+      "Piloto",
+      "Designer de Interiores",
+      "Fotógrafo"
+    ],
+    musical: [
+      "Produtor Musical",
+      "Instrumentista",
+      "Compositor",
+      "Maestro",
+      "Musicoterapeuta",
+      "Engenheiro de Som",
+      "Crítico Musical"
+    ],
+    corporal_cinestesica: [
+      "Fisioterapeuta",
+      "Ator/Dançarino",
+      "Educador Físico",
+      "Cirurgião",
+      "Atleta Profissional",
+      "Coreógrafo",
+      "Artista de Performance"
+    ],
+    interpessoal: [
+      "Psicólogo",
+      "RH",
+      "Professor",
+      "Assistente Social",
+      "Vendedor",
+      "Politico",
+      "Mediador de Conflitos"
+    ],
+    intrapessoal: [
+      "Terapeuta",
+      "Filósofo",
+      "Escritor",
+      "Pesquisador",
+      "Consultor",
+      "Coach",
+      "Empreendedor"
+    ],
+    naturalista: [
+      "Biólogo",
+      "Ambientalista",
+      "Agrônomo",
+      "Veterinário",
+      "Geólogo",
+      "Oceanógrafo",
+      "Paisagista"
+    ],
+    existencial: [
+      "Filósofo",
+      "Teólogo",
+      "Pesquisador",
+      "Conselheiro Espiritual",
+      "Antropólogo",
+      "Sociólogo",
+      "Escritor de Não-Ficção"
+    ]
   };
 
-  // Generate profession recommendations whenever topCategories changes
   useEffect(() => {
-    const recommendations = topCategories
-      .map((cat, index) => {
+    const text = topCategories
+      .map((cat, i) => {
         const key = normalizeKey(cat.name);
-        const profList = professionMap[key] || [];
-        return `${index + 1}. ${cat.name} (${cat.score}% de compatibilidade):\n   - ${profList.join("\n   - ")}`;
+        const list = professionMap[key] || professionMap[cat.key] || ["Profissões relacionadas à área"];
+        return `${i + 1}. ${cat.name} (${cat.score}% de compatibilidade):\n   - ${list.join(
+          "\n   - "
+        )}`;
       })
       .join("\n\n");
 
-    setProfessions(recommendations);
+    setProfessions(text);
   }, [topCategories]);
 
-  // Specific colors for each category (normalized keys)
   const categoryColors: Record<string, string> = {
-    Logico_Matematica: "hsl(220, 90%, 56%)", // Blue
-    Linguistica: "hsl(280, 65%, 60%)", // Purple
-    Espacial: "hsl(25, 95%, 53%)", // Orange
-    Musical: "hsl(160, 84%, 39%)", // Teal
-    Corporal_Cinestesica: "hsl(340, 75%, 55%)", // Pink
-    Interpessoal: "hsl(142, 71%, 45%)", // Green
-    Intrapessoal: "hsl(84, 65%, 50%)", // Lime
-    Naturalista: "hsl(200, 92%, 48%)", // Cyan
-    Existencial: "hsl(262, 52%, 47%)", // Deep Purple
+    logico_matematica: "hsl(220, 90%, 56%)",
+    linguistica: "hsl(280, 65%, 60%)",
+    espacial: "hsl(25, 95%, 53%)",
+    musical: "hsl(160, 84%, 39%)",
+    corporal_cinestesica: "hsl(340, 75%, 55%)",
+    interpessoal: "hsl(142, 71%, 45%)",
+    intrapessoal: "hsl(84, 65%, 50%)",
+    naturalista: "hsl(200, 92%, 48%)",
+    existencial: "hsl(262, 52%, 47%)"
+  };
+
+  const getCategoryColor = (categoryName: string, categoryKey?: string) => {
+    const key = categoryKey || normalizeKey(categoryName);
+    return categoryColors[key] || "hsl(var(--muted))";
   };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation Bar */}
-      <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
@@ -133,9 +228,9 @@ const ResultsPage= () => {
               <span className="font-bold text-lg">TestVocacional</span>
             </div>
 
-            <Link 
+            <Link
               to="/"
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="w-4 h-4" />
               Início
@@ -144,62 +239,45 @@ const ResultsPage= () => {
         </div>
       </nav>
 
-      {/* Results Section */}
       <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
-          <Card className="mb-8 animate-scale-in">
+          <Card className="mb-8">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 w-16 h-16 bg-secondary rounded-full flex items-center justify-center animate-fade-in" style={{ animationDelay: "100ms" }}>
+              <div className="mx-auto mb-4 w-16 h-16 bg-secondary rounded-full flex items-center justify-center">
                 <Award className="w-8 h-8 text-secondary-foreground" />
               </div>
-              <CardTitle className="text-3xl animate-fade-in" style={{ animationDelay: "200ms", animationFillMode: "backwards" }}>Resultados do Teste Vocacional</CardTitle>
-              <CardDescription className="animate-fade-in" style={{ animationDelay: "300ms", animationFillMode: "backwards" }}>
-                Veja suas pontuações por área e as profissões recomendadas
+              <CardTitle className="text-3xl">Resultados do Teste Vocacional</CardTitle>
+              <CardDescription>
+                Veja suas pontuações por área e profissões sugeridas
               </CardDescription>
             </CardHeader>
+
             <CardContent className="space-y-8">
-              {/* Chart Section */}
-              <div className="animate-fade-in">
+              {/* Gráfico */}
+              <div>
                 <h3 className="text-xl font-semibold mb-4">Pontuação por Área</h3>
                 <div className="w-full h-[400px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={sortedCategories}>
-                      <CartesianGrid 
-                        strokeDasharray="3 3" 
-                        stroke="hsl(var(--border))"
-                        opacity={0.3}
-                      />
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                       <XAxis 
                         dataKey="name" 
-                        stroke="hsl(var(--foreground))"
-                        tick={{ fill: "hsl(var(--foreground))" }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                        interval={0}
+                        fontSize={12}
                       />
-                      <YAxis 
-                        stroke="hsl(var(--foreground))"
-                        tick={{ fill: "hsl(var(--foreground))" }}
-                        domain={[0, 100]}
+                      <YAxis domain={[0, 100]} />
+                      <Tooltip 
+                        formatter={(value) => [`${value}%`, 'Pontuação']}
+                        labelFormatter={(label) => `Área: ${label}`}
                       />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "hsl(var(--background))",
-                          border: "1px solid hsl(var(--border))",
-                          borderRadius: "6px",
-                        }}
-                        labelStyle={{ color: "hsl(var(--foreground))" }}
-                        animationDuration={300}
-                        animationEasing="ease-out"
-                      />
-                      <Bar 
-                        dataKey="score" 
-                        radius={[8, 8, 0, 0]}
-                        animationBegin={200}
-                        animationDuration={1000}
-                        animationEasing="ease-out"
-                      >
-                        {sortedCategories.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={categoryColors[normalizeKey(entry.name)] || "hsl(var(--muted))"}
+                      <Bar dataKey="score" radius={[8, 8, 0, 0]}>
+                        {sortedCategories.map((entry, i) => (
+                          <Cell
+                            key={i}
+                            fill={getCategoryColor(entry.name, entry.key)}
                           />
                         ))}
                       </Bar>
@@ -208,21 +286,51 @@ const ResultsPage= () => {
                 </div>
               </div>
 
-              {/* Professions Section */}
-              <div className="animate-fade-in" style={{ animationDelay: "400ms", animationFillMode: "backwards" }}>
+              {/* Top 3 */}
+              <div>
+                <h3 className="text-xl font-semibold mb-4">Top 3 Áreas com Maior Compatibilidade</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  {topCategories.map((category, index) => (
+                    <Card key={index} className="text-center">
+                      <CardHeader className="pb-2">
+                        <div className={`mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-2`}
+                             style={{ backgroundColor: getCategoryColor(category.name, category.key) }}>
+                          <Award className="w-6 h-6 text-white" />
+                        </div>
+                        <CardTitle className="text-lg">{category.name}</CardTitle>
+                        <CardDescription>{category.score}% de compatibilidade</CardDescription>
+                      </CardHeader>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              {/* Profissões */}
+              <div>
                 <h3 className="text-xl font-semibold mb-4">Profissões Recomendadas</h3>
                 <Textarea
                   value={professions}
                   readOnly
-                  className="min-h-[300px] font-mono text-sm"
+                  className="min-h-[300px] font-mono text-sm leading-relaxed"
                 />
+                <p className="text-sm text-muted-foreground mt-2">
+                  Baseado nas suas áreas de maior aptidão, estas são as profissões que melhor se alinham com seu perfil.
+                </p>
               </div>
 
-              <div className="flex gap-4 animate-fade-in" style={{ animationDelay: "600ms", animationFillMode: "backwards" }}>
-                <Button onClick={() => navigate("/teste")} variant="outline" className="flex-1">
+              {/* Botões */}
+              <div className="flex gap-4 flex-col sm:flex-row">
+                <Button 
+                  onClick={() => navigate("/teste")} 
+                  variant="outline" 
+                  className="flex-1"
+                >
                   Refazer Teste
                 </Button>
-                <Button onClick={() => navigate("/")} className="flex-1">
+                <Button 
+                  onClick={() => navigate("/")} 
+                  className="flex-1"
+                >
                   Voltar ao Início
                 </Button>
               </div>
