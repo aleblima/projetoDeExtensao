@@ -49,7 +49,7 @@ const Index = () => {
                 </div>
                 {/* Botão leva para a página /login */}
                 <Button asChild className="w-full">
-                  <Link to="/studentlogin">Começar Teste</Link>
+                  <Link to="/TestPage">Começar Teste</Link>
                 </Button>
               </CardContent>
             </Card>
