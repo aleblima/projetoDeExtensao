@@ -45,15 +45,15 @@ const ResultsPage = () => {
   if (!incomingAnswers && !incomingChart && !incomingScoresObj) return null;
 
   const categories = [
-    { name: "Lógico-Matemática", key: "logico_matematica", baseQuestions: [0] },
-    { name: "Linguística", key: "linguistica", baseQuestions: [1] },
-    { name: "Espacial", key: "espacial", baseQuestions: [2] },
-    { name: "Musical", key: "musical", baseQuestions: [3] },
-    { name: "Corporal-Cinestésica", key: "corporal_cinestesica", baseQuestions: [4] },
-    { name: "Interpessoal", key: "interpessoal", baseQuestions: [5] },
-    { name: "Intrapessoal", key: "intrapessoal", baseQuestions: [6] },
-    { name: "Naturalista", key: "naturalista", baseQuestions: [7] },
-    { name: "Existencial", key: "existencial", baseQuestions: [8] }
+    { name: "Lógico-Matemática", key: "logicoMatematica", initialQuestions: [1]},
+    { name: "Linguística", key: "linguistica", initialQuestions: [2] },
+    { name: "Espacial", key: "espacial", initialQuestions: [3] },
+    { name: "Musical", key: "musical", initialQuestions: [4] },
+    { name: "Corporal-Cinestésica", key: "corporalCinestesica", initialQuestions: [5] },
+    { name: "Interpessoal", key: "interpessoal", initialQuestions: [6] },
+    { name: "Intrapessoal", key: "intrapessoal", initialQuestions: [7] },
+    { name: "Naturalista", key: "naturalista", initialQuestions: [8] },
+    { name: "Existencial", key: "existencial", initialQuestions: [9] }
   ];
 
   const normalizeKey = (s: string) =>
@@ -85,11 +85,11 @@ const ResultsPage = () => {
     }
 
     return categories.map((cat) => {
-      const total = cat.baseQuestions.reduce(
+      const total = cat.initialQuestions.reduce(
         (acc, idx) => acc + (incomingAnswers?.[idx] || 0),
         0
       );
-      const avg = total / cat.baseQuestions.length;
+      const avg = total / cat.initialQuestions.length;
       return {
         name: cat.name,
         score: Math.min(100, Math.max(0, Math.round(avg * 20))),
@@ -102,7 +102,7 @@ const ResultsPage = () => {
   const topCategories = sortedCategories.slice(0, 3);
 
   const professionMap: Record<string, string[]> = {
-    logico_matematica: [
+    logicoMatematica: [
       "Cientista de Dados",
       "Engenheiro",
       "Analista de Dados",
@@ -138,7 +138,7 @@ const ResultsPage = () => {
       "Engenheiro de Som",
       "Crítico Musical"
     ],
-    corporal_cinestesica: [
+    corporalCinestesica: [
       "Fisioterapeuta",
       "Ator/Dançarino",
       "Educador Físico",
@@ -200,15 +200,15 @@ const ResultsPage = () => {
   }, [topCategories]);
 
   const categoryColors: Record<string, string> = {
-    logico_matematica: "hsl(220, 90%, 56%)",
-    linguistica: "hsl(280, 65%, 60%)",
-    espacial: "hsl(25, 95%, 53%)",
-    musical: "hsl(160, 84%, 39%)",
-    corporal_cinestesica: "hsl(340, 75%, 55%)",
-    interpessoal: "hsl(142, 71%, 45%)",
-    intrapessoal: "hsl(84, 65%, 50%)",
-    naturalista: "hsl(200, 92%, 48%)",
-    existencial: "hsl(262, 52%, 47%)"
+    logicoMatematica: " hsl(220, 90%, 56%) ", //Azul
+    linguistica: "hsl(280, 65%, 60%)", //Roxo
+    espacial: "hsl(25, 95%, 53%)",//Laranja
+    musical: "hsl(160, 84%, 39%)", //
+    corporalCinestesica: "hsl(340, 75%, 55%)", //Rosa
+    interpessoal: "hsl(142, 71%, 45%)", // Verde
+    intrapessoal: "hsl(84, 65%, 50%)", //Lima
+    naturalista: "hsl(200, 92%, 48%)",// Ciano
+    existencial: "hsl(262, 52%, 47%)" // Roxo escuro
   };
 
   const getCategoryColor = (categoryName: string, categoryKey?: string) => {

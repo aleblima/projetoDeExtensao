@@ -1,17 +1,22 @@
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { BookOpen, TrendingUp, Award, Brain, Target } from "lucide-react";
 
-
 const Index = () => {
   const popularCourses = [
-    { name: "Medicina", icon: "🏥"},
-    { name: "Engenharia", icon: "⚙️"},
-    { name: "Direito", icon: "⚖️"},
-    { name: "Psicologia", icon: "🧠"},
-    { name: "Administração", icon: "💼"}
+    { name: "Medicina", icon: "🏥" },
+    { name: "Engenharia", icon: "⚙️" },
+    { name: "Direito", icon: "⚖️" },
+    { name: "Psicologia", icon: "🧠" },
+    { name: "Administração", icon: "💼" },
   ];
 
   return (
@@ -34,8 +39,9 @@ const Index = () => {
               </CardHeader>
               <CardContent className="text-center">
                 <p className="text-muted-foreground mb-6">
-                   Um teste científico desenvolvido para ajudar você a identificar suas 
-                  habilidades naturais e interesses profissionais.
+                  Um teste científico desenvolvido para ajudar você a
+                  identificar suas habilidades naturais e interesses
+                  profissionais.
                 </p>
                 <div className="flex justify-center gap-6 text-sm mb-6">
                   <div className="flex items-center gap-2">
@@ -49,7 +55,7 @@ const Index = () => {
                 </div>
                 {/* Botão leva para a página /login */}
                 <Button asChild className="w-full">
-                  <Link to="/studentlogin">Começar Teste</Link>
+                  <Link to="/Login">Começar Teste</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -67,14 +73,18 @@ const Index = () => {
                   <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
                     <BookOpen className="w-6 h-6 text-primary-foreground" />
                   </div>
-                  <CardTitle className="text-xl">Por que fazer um teste vocacional?</CardTitle>
+                  <CardTitle className="text-xl">
+                    Por que fazer um teste vocacional?
+                  </CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground">
-                  O teste vocacional é uma ferramenta essencial para quem busca clareza 
-                  sobre sua carreira profissional.Ele auxilia na escolha da futura profissão baseado em suas aptdões e interesses pessoais. 
-                  </p>
+                  O teste vocacional é uma ferramenta essencial para quem busca
+                  clareza sobre sua carreira profissional.Ele auxilia na escolha
+                  da futura profissão baseado em suas aptdões e interesses
+                  pessoais.
+                </p>
                 <ul className="space-y-2">
                   <li className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-primary rounded-full"></div>
@@ -91,8 +101,8 @@ const Index = () => {
                   <li className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-primary rounded-full"></div>
                     <span>Aumenta chances de satisfação profissional; </span>
-                  </li>  
-                </ul> 
+                  </li>
+                </ul>
               </CardContent>
             </Card>
             {/* Popular couses card */}
@@ -102,15 +112,25 @@ const Index = () => {
                   <div className="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center">
                     <TrendingUp className="w-6 h-6 text-secondary-foreground" />
                   </div>
-                  <CardTitle className="text-xl">Cursos Mais Pesquisados</CardTitle>
+                  <CardTitle className="text-xl">
+                    Cursos Mais Pesquisados
+                  </CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground mb-4">Veja quais cursos estão em alta no mercado de trabalho: </p>
+                <p className="text-muted-foreground mb-4">
+                  Veja quais cursos estão em alta no mercado de trabalho:{" "}
+                </p>
                 <div className="space-y-3">
                   {popularCourses.map((course, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-background rounded-lg">
-                      <div className="flex items-center gap-3"><span className="text-2xl">{course.icon}</span> <span className="font-medium">{course.name}</span></div>
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-background rounded-lg"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{course.icon}</span>{" "}
+                        <span className="font-medium">{course.name}</span>
+                      </div>
                       <span className="text-sm text-secondary font-semibold"></span>
                     </div>
                   ))}
@@ -120,8 +140,6 @@ const Index = () => {
           </div>
         </div>
       </section>
-     
-
     </div>
   );
 };
