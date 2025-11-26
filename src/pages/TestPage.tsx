@@ -6,11 +6,11 @@ import ScaleQuestion from "@/components/ScaleQuestion";
 import { Award, Brain, ArrowRight, CheckCircle2 } from "lucide-react";
 
 type IntelligenceType =
-  | 'logico_matematica'
+  | 'logicoMatematica'
   | 'linguistica'
   | 'espacial'
   | 'musical'
-  | 'corporal_cinestesica'
+  | 'corporalCinestesica'
   | 'interpessoal'
   | 'intrapessoal'
   | 'naturalista'
@@ -23,11 +23,11 @@ interface Question {
 }
 
 const categoryDisplayNames: Record<IntelligenceType, string> = {
-  logico_matematica: "Lógico-Matemática",
+  logicoMatematica: "Lógico-Matemática",
   linguistica: "Linguística",
   espacial: "Espacial",
   musical: "Musical",
-  corporal_cinestesica: "Corporal-Cinestésica",
+  corporalCinestesica: "Corporal-Cinestésica",
   interpessoal: "Interpessoal",
   intrapessoal: "Intrapessoal",
   naturalista: "Naturalista",
@@ -36,11 +36,11 @@ const categoryDisplayNames: Record<IntelligenceType, string> = {
 
 // Fase 1
 const initialQuestions: Question[] = [
-  { id: 1, text: "Você tem facilidade para resolver problemas matemáticos e pensar logicamente?", category: 'logico_matematica' },
+  { id: 1, text: "Você tem facilidade para resolver problemas matemáticos e pensar logicamente?", category: 'logicoMatematica' },
   { id: 2, text: "Você gosta de ler, escrever ou se expressar verbalmente?", category: 'linguistica' },
   { id: 3, text: "Consegue visualizar objetos e espaços facilmente, tendo bom senso de orientação?", category: 'espacial' },
   { id: 4, text: "Tem interesse por música, aprecia tocar instrumentos ou cantar?", category: 'musical' },
-  { id: 5, text: "Aprende melhor através do movimento, gosta de esportes, dança ou trabalhos manuais?", category: 'corporal_cinestesica' },
+  { id: 5, text: "Aprende melhor através do movimento, gosta de esportes, dança ou trabalhos manuais?", category: 'corporalCinestesica' },
   { id: 6, text: "Você se considera uma pessoa que entende bem as emoções e motiva os outros?", category: 'interpessoal' },
   { id: 7, text: "Prefere trabalhar sozinho, refletir sobre seus sentimentos e ter autoconhecimento?", category: 'intrapessoal' },
   { id: 8, text: "Tem interesse e facilidade para lidar com a natureza, plantas e animais?", category: 'naturalista' },
@@ -49,7 +49,7 @@ const initialQuestions: Question[] = [
 
 // Fase 2
 const specificQuestions: Record<IntelligenceType, string[]> = {
-  logico_matematica: [
+  logicoMatematica: [
     "Você prefere carreiras que envolvam cálculos, análise de dados ou raciocínio estratégico?",
     "Gostaria de trabalhar em áreas como engenharia, tecnologia, ciência ou finanças?",
     "Você se sente confortável lidando com orçamentos e projeções financeiras?",
@@ -81,7 +81,7 @@ const specificQuestions: Record<IntelligenceType, string[]> = {
     "Tem interesse pela parte técnica de shows, como acústica e sonorização?",
     "Imagina-se gerenciando carreiras de artistas ou eventos musicais?"
   ],
-  corporal_cinestesica: [
+  corporalCinestesica: [
     "Gostaria de trabalhar com educação física, fisioterapia ou esportes de alto rendimento?",
     "Tem interesse em artes cênicas, dança ou performance corporal?",
     "Prefere trabalhos manuais que exijam precisão, como cirurgia, odontologia ou artesanato?",
@@ -183,7 +183,7 @@ const TestPage = () => {
 
   const calculateDominantAndAdvance = (currentScores: Record<string, number>) => {
     let max = -1;
-    let winner: IntelligenceType = "logico_matematica";
+    let winner: IntelligenceType = "logicoMatematica";
 
     Object.entries(currentScores).forEach(([key, value]) => {
       if (value > max) {
