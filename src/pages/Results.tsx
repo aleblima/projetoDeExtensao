@@ -1,4 +1,3 @@
-
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,17 +9,26 @@ import { Award, Brain, ArrowLeft } from "lucide-react";
 const Results = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const answers = location.state?.answers as number[] | undefined;
+  const state = location.state as any | undefined;
+
+  // Support different payloads coming from TestPage:
+  // - { answers: number[] }
+  // - { chartData: Array<{ name, score }> }
+  // - { scores: Record<string, number> }
+  const incomingAnswers: number[] | undefined = Array.isArray(state?.answers) ? state.answers : undefined;
+  const incomingChart: Array<{ name: string; score: number }> | undefined = Array.isArray(state?.chartData) ? state.chartData : undefined;
+  const incomingScoresObj: Record<string, number> | undefined = state?.scores && typeof state.scores === "object" ? state.scores : undefined;
 
   const [professions, setProfessions] = useState("");
 
   useEffect(() => {
-    if (!answers || answers.length === 0) {
+    const hasData = (incomingAnswers && incomingAnswers.length > 0) || (incomingChart && incomingChart.length > 0) || (incomingScoresObj && Object.keys(incomingScoresObj).length > 0);
+    if (!hasData) {
       navigate("/teste");
     }
-  }, [answers, navigate]);
+  }, [incomingAnswers, incomingChart, incomingScoresObj, navigate]);
 
-  if (!answers) {
+  if (!incomingAnswers && !incomingChart && !incomingScoresObj) {
     return null;
   }
 
@@ -37,52 +45,75 @@ const Results = () => {
     { name: "Existencial", baseQuestions: [8] },
   ];
 
-  // Calculate scores for each category
-  const chartData = categories.map((category) => {
-    const total = category.baseQuestions.reduce((sum, qIndex) => sum + (answers[qIndex] || 0), 0);
-    const average = total / category.baseQuestions.length;
-    return {
-      name: category.name,
-      score: Math.round(average * 20), // Convert to 0-100 scale
-    };
-  });
+  // helper to normalize strings to keys (remove accents, spaces -> underscore)
+  const normalizeKey = (s: string) =>
+    s
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "_")
+      .replace(/[^\w_]/g, "");
+
+  // Calculate chartData from whichever incoming source is available
+  const chartData = (() => {
+    if (incomingChart) {
+      return incomingChart.map((c) => ({ name: c.name, score: Math.round(c.score) }));
+    }
+
+    if (incomingScoresObj) {
+      return categories.map((cat) => ({
+        name: cat.name,
+        score: Math.round(incomingScoresObj[cat.name] ?? incomingScoresObj[normalizeKey(cat.name)] ?? 0),
+      }));
+    }
+
+    // Fallback: compute from answers array
+    return categories.map((category) => {
+      const total = category.baseQuestions.reduce((sum, qIndex) => sum + (incomingAnswers?.[qIndex] || 0), 0);
+      const average = total / category.baseQuestions.length;
+      return {
+        name: category.name,
+        score: Math.round(average * 20), // Convert to 0-100 scale
+      };
+    });
+  })();
 
   // Sort by score to find top 3
   const sortedCategories = [...chartData].sort((a, b) => b.score - a.score);
   const topCategories = sortedCategories.slice(0, 3);
 
-  // Profession recommendations based on categories
+  // Profession recommendations based on normalized category names
   const professionMap: Record<string, string[]> = {
-    Lógico_Matemática: ["Cientista de Dados", "Engenheiro", "Analista de Dados"],
-    Linguística: ["Jornalista","Redator Publicitário", "Tradutor/Intérprete"],
-    Espacial: ["Arquiterto", "Designer Gráfico", "Engenheiro Cívil"],
+    Logico_Matematica: ["Cientista de Dados", "Engenheiro", "Analista de Dados"],
+    Linguistica: ["Jornalista", "Redator Publicitário", "Tradutor/Intérprete"],
+    Espacial: ["Arquiteto", "Designer Gráfico", "Engenheiro Civil"],
     Musical: ["Produtor Musical", "Músico/Instrumentista", "Compositor"],
-    Corporal_Cinestésica: ["Fisioterapia", "Ator/ Dançarino", "Educador Físico"],
-    Interpessoal: ["Psicologo","Gestor de Recursos Humanos", "Professor"],
+    Corporal_Cinestesica: ["Fisioterapeuta", "Ator/Dançarino", "Educador Físico"],
+    Interpessoal: ["Psicólogo", "Gestor de Recursos Humanos", "Professor"],
     Intrapessoal: ["Terapeuta Holístico", "Filósofo", "Escritor"],
-    Naturalista: ["Biológo", "Engenheito Ambiental", "Agrônomo"],
+    Naturalista: ["Biólogo", "Engenheiro Ambiental", "Agrônomo"],
     Existencial: ["Filósofo", "Teólogo", "Pesquisador de Ciências Humanas"],
   };
 
-  // Generate profession recommendations
+  // Generate profession recommendations whenever topCategories changes
   useEffect(() => {
     const recommendations = topCategories
       .map((cat, index) => {
-        const profList = professionMap[cat.name] || [];
+        const key = normalizeKey(cat.name);
+        const profList = professionMap[key] || [];
         return `${index + 1}. ${cat.name} (${cat.score}% de compatibilidade):\n   - ${profList.join("\n   - ")}`;
       })
       .join("\n\n");
 
     setProfessions(recommendations);
-  }, []);
+  }, [topCategories]);
 
-  // Specific colors for each category
+  // Specific colors for each category (normalized keys)
   const categoryColors: Record<string, string> = {
-    Lógico_Matemática: "hsl(220, 90%, 56%)", // Blue
-    Linguística: "hsl(280, 65%, 60%)", // Purple
+    Logico_Matematica: "hsl(220, 90%, 56%)", // Blue
+    Linguistica: "hsl(280, 65%, 60%)", // Purple
     Espacial: "hsl(25, 95%, 53%)", // Orange
     Musical: "hsl(160, 84%, 39%)", // Teal
-    Corporal_Cinestésica: "hsl(340, 75%, 55%)", // Pink
+    Corporal_Cinestesica: "hsl(340, 75%, 55%)", // Pink
     Interpessoal: "hsl(142, 71%, 45%)", // Green
     Intrapessoal: "hsl(84, 65%, 50%)", // Lime
     Naturalista: "hsl(200, 92%, 48%)", // Cyan
@@ -168,7 +199,7 @@ const Results = () => {
                         {sortedCategories.map((entry, index) => (
                           <Cell 
                             key={`cell-${index}`} 
-                            fill={categoryColors[entry.name] || "hsl(var(--muted))"}
+                            fill={categoryColors[normalizeKey(entry.name)] || "hsl(var(--muted))"}
                           />
                         ))}
                       </Bar>

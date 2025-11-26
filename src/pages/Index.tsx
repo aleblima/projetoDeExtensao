@@ -7,11 +7,11 @@ import { BookOpen, TrendingUp, Award, Brain, Target } from "lucide-react";
 
 const Index = () => {
   const popularCourses = [
-    { name: "Medicina", icon: "🏥", growth: "+15%" },
-    { name: "Engenharia", icon: "⚙️", growth: "+12%" },
-    { name: "Direito", icon: "⚖️", growth: "+8%" },
-    { name: "Psicologia", icon: "🧠", growth: "+20%" },
-    { name: "Administração", icon: "💼", growth: "+10%" }
+    { name: "Medicina", icon: "🏥"},
+    { name: "Engenharia", icon: "⚙️"},
+    { name: "Direito", icon: "⚖️"},
+    { name: "Psicologia", icon: "🧠"},
+    { name: "Administração", icon: "💼"}
   ];
 
   return (
@@ -34,8 +34,8 @@ const Index = () => {
               </CardHeader>
               <CardContent className="text-center">
                 <p className="text-muted-foreground mb-6">
-                  Um teste científico para ajudar a identificar suas 
-                  habilidades e interesses profissionais.
+                   Um teste científico desenvolvido para ajudar você a identificar suas 
+                  habilidades naturais e interesses profissionais.
                 </p>
                 <div className="flex justify-center gap-6 text-sm mb-6">
                   <div className="flex items-center gap-2">
@@ -47,9 +47,9 @@ const Index = () => {
                     <span>Resultado Imediato</span>
                   </div>
                 </div>
-                {/* Botão leva para a página /teste */}
+                {/* Botão leva para a página /login */}
                 <Button asChild className="w-full">
-                  <Link to="/teste">Começar Teste</Link>
+                  <Link to="/studentlogin">Começar Teste</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -71,7 +71,27 @@ const Index = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">O teste vocacional é uma ferramenta essencial para quem busca clareza sobre sua carreira profissional.</p>
+                <p className="text-muted-foreground">O teste vocacional é uma ferramenta essencial para quem busca clareza 
+                  sobre sua carreira profissional.Ele auxilia na escolha da futura profissão baseado em suas aptdões e interesses pessoais. 
+                  </p><br></br>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    <span>Identifica suas habilidades naturais;</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    <span>Reduz ansiedade na escolha profissional;</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    <span>Orienta decisões acadêmicas importantes;</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    <span>Aumenta chances de satisfação profissional; </span>
+                  </li>  
+                </ul> 
               </CardContent>
             </Card>
             <Card className="h-full">
@@ -89,7 +109,7 @@ const Index = () => {
                   {popularCourses.map((course, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-background rounded-lg">
                       <div className="flex items-center gap-3"><span className="text-2xl">{course.icon}</span> <span className="font-medium">{course.name}</span></div>
-                      <span className="text-sm text-secondary font-semibold">{course.growth}</span>
+                      <span className="text-sm text-secondary font-semibold"></span>
                     </div>
                   ))}
                 </div>

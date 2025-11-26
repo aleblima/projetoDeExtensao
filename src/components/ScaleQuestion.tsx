@@ -12,9 +12,8 @@ interface ScaleQuestionProps {
 
 // 1. Aqui definimos as frases para CADA número
 const scaleLabels: Record<number, string> = {
-  0: "Não me identifico",
-  1: "Muito pouco",
-  2: "Pouco",
+  1:"Não me identifico",
+  2: "Muito pouco",
   3: "Moderadamente",
   4: "Bastante",
   5: "Me identifico totalmente"
@@ -31,7 +30,7 @@ const ScaleQuestion: React.FC<ScaleQuestionProps> = ({ question, onAnswer }) => 
 
         {/* Container dos botões */}
         <div className="flex justify-between items-start gap-2 md:gap-4">
-          {[0, 1, 2, 3, 4, 5].map((value) => (
+          {[1, 2, 3, 4, 5].map((value) => (
             <div key={value} className="flex flex-col items-center gap-3 flex-1 group">
               
               {/* Botão Circular */}
