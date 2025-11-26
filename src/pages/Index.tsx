@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { BookOpen, TrendingUp, Award, Brain, Target } from "lucide-react";
-//import { RegistrationForm } from '@/components/Common/RegistrationForm';
+
 
 const Index = () => {
   const popularCourses = [
@@ -29,7 +29,7 @@ const Index = () => {
                   Teste Vocacional Online
                 </CardTitle>
                 <CardDescription className="text-lg">
-                  Descubra suas aptidões e encontre a carreira ideal para você
+                  Descubra suas aptidões e encontre a carreira ideal para você.
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center">
@@ -58,10 +58,10 @@ const Index = () => {
       </section>
 
       {/* Info Cards Section */}
-      <section className="py-16 px-4 bg-muted/40">
+      <section className="py-16 px-4 bg-test-bg">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-8">
-            <Card className="h-full">
+            <Card className="h-full bg-gradient-card border-0 shadow-lg">
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
@@ -70,10 +70,11 @@ const Index = () => {
                   <CardTitle className="text-xl">Por que fazer um teste vocacional?</CardTitle>
                 </div>
               </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">O teste vocacional é uma ferramenta essencial para quem busca clareza 
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground">
+                  O teste vocacional é uma ferramenta essencial para quem busca clareza 
                   sobre sua carreira profissional.Ele auxilia na escolha da futura profissão baseado em suas aptdões e interesses pessoais. 
-                  </p><br></br>
+                  </p>
                 <ul className="space-y-2">
                   <li className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-primary rounded-full"></div>
@@ -94,7 +95,8 @@ const Index = () => {
                 </ul> 
               </CardContent>
             </Card>
-            <Card className="h-full">
+            {/* Popular couses card */}
+            <Card className="h-full bg-gradient-card corder-0 shadow-lg">
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center">
@@ -104,7 +106,7 @@ const Index = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground mb-4">Veja quais cursos estão em alta:</p>
+                <p className="text-muted-foreground mb-4">Veja quais cursos estão em alta no mercado de trabalho: </p>
                 <div className="space-y-3">
                   {popularCourses.map((course, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-background rounded-lg">
