@@ -147,6 +147,16 @@ const handleAnswer = (value: number) => {
   }
 
   else if (phase === "specific") {
+
+    const currentCategory = dominantIntelligence;
+
+    if (currentCategory) {
+      setScores(prev => ({
+        ...prev,
+        [currentCategory]: (prev[currentCategory] || 0) + value
+      }));
+    }
+
     setTimeout(() => {
       const totalSpecific = dominantIntelligence
         ? specificQuestions[dominantIntelligence].length
@@ -157,7 +167,10 @@ const handleAnswer = (value: number) => {
       } else {
         navigate("/resultado", {
           state: {
-            scores,
+            scores: {
+              ...scores,
+              [currentCategory!]: (scores[currentCategory!] || 0)
+            },
             dominantIntelligence
           }
         });
@@ -166,22 +179,25 @@ const handleAnswer = (value: number) => {
   }
 };
 
+
+
 // Calcula qual categoria venceu e avança para a fase 2
 const calculateDominantAndAdvance = () => {
   let maxScore = -1;
-  let winner: IntelligenceType = "logico_matematica";
+  let winner: IntelligenceType = "Linguística"; // coloque qualquer default aqui
 
-  for (const key in scores) {
-    if (scores[key] > maxScore) {
-      maxScore = scores[key];
+  Object.entries(scores).forEach(([key, value]) => {
+    if (value > maxScore) {
+      maxScore = value;
       winner = key as IntelligenceType;
     }
-  }
+  });
 
   setDominantIntelligence(winner);
   setPhase("specific");
   setCurrentQuestionIndex(0);
 };
+
 
 // Reseta o teste se necessário
 const resetTest = () => {
