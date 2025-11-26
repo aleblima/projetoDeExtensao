@@ -7,6 +7,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Importando TODAS as páginas e o Header
+import TestPage from "./pages/TestPage";
+import ResultsPage from "./pages/ResultsPage";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import StudentLogin from "./pages/StudentLogin"; // Garanta que este arquivo exista em src/pages
