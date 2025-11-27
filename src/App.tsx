@@ -1,5 +1,3 @@
-// Substitua TODO o conteúdo do seu arquivo src/App.tsx por este:
-
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -7,10 +5,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Importando TODAS as páginas e o Header
+import TestPage from "./pages/TestPage";
+import ResultsPage from "./pages/ResultsPage";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import StudentLogin from "./pages/StudentLogin"; // Garanta que este arquivo exista em src/pages
-import TestPage from "./pages/TestPage";       // Garanta que este arquivo exista em src/pages
+import StudentLogin from "./pages/StudentLogin";
 import { Header } from "./components/Common/Header";
 
 const queryClient = new QueryClient();
@@ -41,7 +40,9 @@ const App = () => (
           {/* Se a URL não for /login, ele usa esta estrutura */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<Index />} /> {/* Página Inicial */}
-            <Route path="/teste" element={<TestPage />} /> {/* Página de Teste */}
+            {/* ROTAS DO TESTE (adicionado dps, junto dos imports) */}
+            <Route path="/teste" element={<TestPage />} />
+            <Route path="/resultado" element={<ResultsPage />} />
             {/* Página de erro para URLs não encontradas DENTRO do layout */}
             <Route path="*" element={<NotFound />} />
           </Route>

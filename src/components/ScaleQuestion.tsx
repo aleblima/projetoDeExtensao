@@ -1,65 +1,79 @@
-// src/components/ScaleQuestion.tsx
-
-import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import React, { useState } from 'react';
+import { Check } from 'lucide-react';
 
 interface ScaleQuestionProps {
   question: string;
   onAnswer: (value: number) => void;
+  answered?: boolean;
 }
 
-// 1. Aqui definimos as frases para CADA número
-const scaleLabels: Record<number, string> = {
-  0: "Não me identifico",
-  1: "Muito pouco",
-  2: "Pouco",
-  3: "Moderadamente",
-  4: "Bastante",
-  5: "Me identifico totalmente"
-};
+const ScaleQuestion: React.FC<ScaleQuestionProps> = ({ question, onAnswer, answered = false }) => {
+  const [selectedValue, setSelectedValue] = useState<number | null>(null);
 
-const ScaleQuestion: React.FC<ScaleQuestionProps> = ({ question, onAnswer }) => {
+  const handleScaleClick = (value: number) => {
+    setSelectedValue(value);
+    onAnswer(value);
+  };
+
+  const scaleOptions = [
+    { value: 1, label: "Não me identifico" },
+    { value: 2, label: "Me identifico pouco" },
+    { value: 3, label: "Me identifico parcialmente" },
+    { value: 4, label: "Me identifico bem" },
+    { value: 5, label: "Me identifico muito" }
+  ];
+
   return (
-    <Card className="w-full border-none shadow-none bg-transparent">
-      <CardContent className="pt-0 px-0">
-        {/* Pergunta */}
-        <h3 className="text-xl md:text-2xl font-semibold text-center mb-10 text-foreground leading-relaxed">
-          {question}
-        </h3>
-
-        {/* Container dos botões */}
-        <div className="flex justify-between items-start gap-2 md:gap-4">
-          {[0, 1, 2, 3, 4, 5].map((value) => (
-            <div key={value} className="flex flex-col items-center gap-3 flex-1 group">
-              
-              {/* Botão Circular */}
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-10 h-10 md:w-14 md:h-14 rounded-full text-base md:text-xl font-bold transition-all duration-200",
-                  "border-2 border-muted-foreground/20 hover:border-primary hover:bg-primary/5 hover:text-primary hover:scale-110 active:scale-95"
-                )}
-                onClick={() => onAnswer(value)}
-              >
-                {value}
-              </Button>
-              
-              {/* 2. Legenda (Agora visível para todos) */}
-              <span className={cn(
-                "text-[10px] md:text-xs text-center font-medium leading-tight transition-colors duration-200",
-                // Destaque visual para os extremos (0 e 5) e cor suave para os outros
-                value === 0 || value === 5 ? "text-primary font-bold" : "text-muted-foreground group-hover:text-foreground"
-              )}>
-                {scaleLabels[value]}
+    <div className="bg-card rounded-lg p-6 shadow-sm border animate-fade-in">
+      <h3 className="text-lg font-medium text-foreground mb-6 leading-relaxed">
+        {question}
+      </h3>
+      
+      <div className="space-y-3">
+        {scaleOptions.map((option, index) => (
+          <button
+            key={option.value}
+            onClick={() => handleScaleClick(option.value)}
+            className={`
+              w-full p-4 rounded-lg border-2 transition-all duration-200 
+              flex items-center justify-between group
+              animate-fade-in
+              ${selectedValue === option.value
+                ? 'bg-primary border-primary text-primary-foreground shadow-md' 
+                : 'bg-background border-border hover:border-primary hover:bg-accent'
+              }
+            `}
+            style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' }}
+          >
+            <div className="flex items-center gap-4">
+              <div className={`
+                w-8 h-8 rounded-full border-2 flex items-center justify-center
+                font-semibold text-sm transition-all
+                ${selectedValue === option.value
+                  ? 'bg-primary-foreground text-primary border-primary-foreground' 
+                  : 'border-muted-foreground text-muted-foreground group-hover:border-primary group-hover:text-primary'
+                }
+              `}>
+                {option.value}
+              </div>
+              <span className={`
+                text-left font-medium
+                ${selectedValue === option.value
+                  ? 'text-primary-foreground' 
+                  : 'text-foreground'
+                }
+              `}>
+                {option.label}
               </span>
-
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            
+            {selectedValue === option.value && (
+              <Check className="w-5 h-5 text-primary-foreground animate-scale-in" />
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 };
 
