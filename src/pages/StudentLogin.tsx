@@ -102,12 +102,13 @@ export function StudentLogin() {
       );
 
       const checkData = await check.json();
+      console.log("DEBUG → checkData recebido:", checkData);
 
-      if (checkData.canProceed) {
+      if (checkData.curso) {
+        navigate("/resultado", { state: { curso: checkData.curso } });}
+      else {
         navigate("/teste");
-      } else {
-        navigate("/resultado");
-      }
+}
     } catch (e) {
       setServerMessage({
         type: "error",
