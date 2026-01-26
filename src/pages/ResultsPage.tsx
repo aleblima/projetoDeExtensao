@@ -34,6 +34,39 @@ const ResultsPage = () => {
   const [professions, setProfessions] = useState("");
 
 
+  useEffect(() => {
+    if (!incomingScoresObj) return;
+
+    const sorted = Object.entries(incomingScoresObj)
+      .map(([key, value]) => ({ key, score: value as number }))
+      .sort((a, b) => b.score - a.score);
+
+    if (sorted.length === 0) return;
+
+    const cursoFinal = sorted[0].key;
+
+    const salvarResultado = async () => {
+      try {
+        await fetch("https://backend-para-deploy.onrender.com/api/submit_results", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+          },
+          body: JSON.stringify({
+            telefone: localStorage.getItem("telefone"),
+            curso: cursoFinal
+          })
+        });
+      } catch (error) {
+        console.error("Erro ao salvar resultado:", error);
+      }
+    };
+
+    salvarResultado();
+  }, []);
+
+
 
   const categories = [
     { name: "Lógico-Matemática", key: "logicoMatematica", initialQuestions: [1]},
