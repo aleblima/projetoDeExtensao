@@ -33,38 +33,46 @@ const ResultsPage = () => {
 
   const [professions, setProfessions] = useState("");
 
-
   useEffect(() => {
-    if (!incomingScoresObj) return;
+  if (!incomingScoresObj) return;
 
-    const sorted = Object.entries(incomingScoresObj)
-      .map(([key, value]) => ({ key, score: value as number }))
-      .sort((a, b) => b.score - a.score);
+  const sorted = Object.entries(incomingScoresObj)
+    .map(([key, value]) => ({ key, score: value as number }))
+    .sort((a, b) => b.score - a.score);
 
-    if (sorted.length === 0) return;
+  if (sorted.length === 0) return;
 
-    const cursoFinal = sorted[0].key;
+  const recommendedArea = sorted[0].key;
+  const token = localStorage.getItem("token");
+  const telefone = localStorage.getItem("telefone");
 
-    const salvarResultado = async () => {
-      try {
-        await fetch("https://backend-para-deploy.onrender.com/api/submit_results", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("token")}`
-          },
-          body: JSON.stringify({
-            telefone: localStorage.getItem("telefone"),
-            curso: cursoFinal
-          })
-        });
-      } catch (error) {
-        console.error("Erro ao salvar resultado:", error);
+  if (!token || !telefone) return;
+
+  const salvarResultado = async () => {
+    try {
+      const response = await fetch("/api/submit_results", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          telefone,
+          recommendedArea,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Erro ao salvar resultado");
       }
-    };
+    } catch (error) {
+      console.error("Erro ao conectar ao servidor", error);
+    }
+  };
 
-    salvarResultado();
-  }, []);
+  salvarResultado();
+}, [incomingScoresObj]);
+
 
 
 
