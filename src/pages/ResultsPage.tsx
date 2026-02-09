@@ -29,11 +29,19 @@ const ResultsPage = () => {
   const incomingAnswers = Array.isArray(state?.answers) ? state.answers : undefined;
   const incomingChart = Array.isArray(state?.chartData) ? state.chartData : undefined;
   const incomingScoresObj =
-    state?.scores && typeof state.scores === "object" ? state.scores : undefined;
+  state?.scores ??
+  JSON.parse(localStorage.getItem("scores") || "null");
 
   const [professions, setProfessions] = useState("");
 
   useEffect(() => {
+  console.log("ResultsPage montou");
+  console.log("scores localstorage:",localStorage.getItem("scores"));
+  console.log("useEffect executou");
+  console.log("scores:", incomingScoresObj);
+  console.log("location.state:", location.state);
+  console.log("localStorage token:", localStorage.getItem("accessToken"));
+
   if (!incomingScoresObj) return;
 
   const sorted = Object.entries(incomingScoresObj)
@@ -43,24 +51,35 @@ const ResultsPage = () => {
   if (sorted.length === 0) return;
 
   const recommendedArea = sorted[0].key;
-  const token = localStorage.getItem("token");
+
+  const token = localStorage.getItem("accessToken"); // ✔️ corrigido
   const telefone = localStorage.getItem("telefone");
+
+  console.log("token:", token);
+  console.log("telefone:", telefone);
 
   if (!token || !telefone) return;
 
   const salvarResultado = async () => {
     try {
-      const response = await fetch("/api/submit_results", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          telefone,
-          recommendedArea,
-        }),
-      });
+      const response = await fetch(
+        "https://backend-para-deploy.onrender.com/api/submit_results",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            telefone,
+            recommendedArea,
+            curso:recommendedArea
+          }),
+        }
+      );
+
+      console.log("status:", response.status);
+      console.log
 
       if (!response.ok) {
         console.error("Erro ao salvar resultado");

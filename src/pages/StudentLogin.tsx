@@ -77,8 +77,11 @@ export function StudentLogin() {
           email: values.email || null,
         }),
       });
-
       const data = await response.json();
+      localStorage.setItem("accessToken",data.token);
+      localStorage.setItem("telefone",data.aluno.telefone);
+      localStorage.setItem("nome",data.aluno.nome);
+      localStorage.setItem("email",data.aluno.email);
 
       if (!response.ok) {
         setServerMessage({ type: "error", message: data.detail });
@@ -87,11 +90,6 @@ export function StudentLogin() {
       }
 
       // Salvar dados do usuário
-      localStorage.setItem("isLogged", "true");
-      localStorage.setItem("telefone", data.telefone);
-      localStorage.setItem("nome", data.nome);
-      localStorage.setItem("email", data.email);
-
       
       //CHECAGEM PARA SABER PRA ONDE REDIRECIONAR
       

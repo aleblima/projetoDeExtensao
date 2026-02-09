@@ -183,6 +183,7 @@ const TestPage = () => {
               fill: color
             };
           });
+            localStorage.setItem("scores", JSON.stringify(newScores));
 
           navigate("/resultado", {
             state: {
